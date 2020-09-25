@@ -22,8 +22,9 @@
     <script>
 
       const electron = require('electron');
-      const ipcr = electron.ipcRenderer;
-      ipcr.on('cpu', (event, cpu, mem, tm )=> {
+      const ipc = electron.ipcRenderer;
+      ipc.send('processed');
+      ipc.on('cpu', (event, cpu, mem, tm )=> {
         console.log(cpu, mem, tm);
         document.getElementById('cpu').innerHTML = cpu
         document.getElementById('mem').innerHTML = mem

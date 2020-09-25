@@ -1,5 +1,6 @@
-import { app, BrowserWindow } from 'electron';
-var os = require('os-utils');
+import { app, ipcMain, BrowserWindow } from 'electron';
+const os = require("os-utils")
+
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) { // eslint-disable-line global-require
   app.quit();
@@ -15,8 +16,10 @@ const createWindow = () => {
     width: 1024,
     height: 600,
     icon: __dirname + '/icon.png',
+    resizable: true,
     webPreferences: {
       nodeIntegration: true,
+      devTools: false,
     }
 
   });
@@ -27,7 +30,6 @@ const createWindow = () => {
 
   // Open the DevTools.
   // mainWindow.webContents.openDevTools();
-
   // Emitted when the window is closed.
   mainWindow.on('closed', () => {
     // Dereference the window object, usually you would store windows
@@ -35,26 +37,8 @@ const createWindow = () => {
     // when you should delete the corresponding element.
     mainWindow = null;
   });
-
-  //main process by dev
-
-  setInterval(() => {
-    var cpu;
-    var mem = (os.freememPercentage() * 100).toFixed(2);
-    var totalMem = (os.totalmem() / 1024).toFixed(2);
-    os.cpuUsage(function (v) {
-      cpu = (v * 100).toFixed(2);
-      mainWindow.webContents.send('cpu', cpu, mem, totalMem);
-    });
-  }, 1000);
-
-  // console.log('cpu usage (%): ' + cpu);
-  // console.log('mem usage (%): ' + mem);
-  // console.log('total mem GB: ' + totalMem);
-
-
-  // main process by dev ends
-
+  // Removes default menu
+  mainWindow.removeMenu();
 };
 
 // This method will be called when Electron has finished
@@ -81,3 +65,15 @@ app.on('activate', () => {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.
+
+ipcMain.on("processed", (ev, args) => {
+  var cpu, mem, totalMem;
+  setInterval(() => {
+    mem = (os.freememPercentage() * 100).toFixed(2);
+    totalMem = (os.totalmem() / 1024).toFixed(2);
+    os.cpuUsage(function (v) {
+      cpu = (v * 100).toFixed(2);
+      ev.reply('cpu', cpu, mem, totalMem);
+    });
+  }, 1000);
+})
